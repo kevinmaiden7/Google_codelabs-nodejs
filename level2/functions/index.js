@@ -22,6 +22,7 @@ const {
     dialogflow,
     Permission,
     Suggestions,
+    BasicCard
   } = require('actions-on-google');
 
 // Import the firebase-functions package for deployment.
@@ -46,7 +47,7 @@ const app = dialogflow({debug: true});
     }
   });*/
 
-  app.intent('color favorito', (conv, {color}) => {
+  /*app.intent('color favorito', (conv, {color}) => {
     const luckyNumber = color.length;
     const audioSound = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
     if (conv.data.userName) {
@@ -57,6 +58,24 @@ const app = dialogflow({debug: true});
     } else {
       conv.close(`<speak>Bien, tu número de la suerte es el ${luckyNumber}.` +
         `<audio src="${audioSound}"></audio></speak>`);
+    }
+   });*/
+
+app.intent('color favorito', (conv, {color}) => {
+    const luckyNumber = color.length;
+    const audioSound = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
+    if (conv.data.userName) {
+      // If we collected user name previously, address them by name and use SSML
+      // to embed an audio snippet in the response.
+      conv.ask(`<speak>${conv.data.userName}, tu número de la suerte es el ` +
+        `${luckyNumber}.<audio src="${audioSound}"></audio> ` +
+        `Te gustaría escuchar algunos colores falsos?</speak>`);
+      conv.ask(new Suggestions('Si', 'No'));
+    } else {
+      conv.ask(`<speak>Bien, tu número de la suerte es el ${luckyNumber}.` +
+        `<audio src="${audioSound}"></audio> ` +
+        `Te gustaría escuchar algunos colores falsos?</speak>`);
+      conv.ask(new Suggestions('Si', 'No'));
     }
    });
 
@@ -80,6 +99,44 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
       conv.ask(new Suggestions('Azul', 'Rojo', 'Verde'));
     }
   });
+
+// Define a mapping of fake color strings to basic card objects.
+const colorMap = {
+  'taco indigo': {
+    title: 'Indigo Taco',
+    text: 'Indigo Taco is a subtle bluish tone.',
+    image: {
+      url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDN1JRbF9ZMHZsa1k/style-color-uiapplication-palette1.png',
+      accessibilityText: 'Indigo Taco Color',
+    },
+    display: 'WHITE',
+  },
+  'unicornio rosa': {
+    title: 'Pink Unicorn',
+    text: 'Pink Unicorn is an imaginative reddish hue.',
+    image: {
+      url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png',
+      accessibilityText: 'Pink Unicorn Color',
+    },
+    display: 'WHITE',
+  },
+  'cafe gris azulado': {
+    title: 'Blue Grey Coffee',
+    text: 'Calling out to rainy days, Blue Grey Coffee brings to mind your favorite coffee shop.',
+    image: {
+      url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png',
+      accessibilityText: 'Blue Grey Coffee Color',
+    },
+    display: 'WHITE',
+  },
+};
+
+// Handle the Dialogflow intent named 'favorite fake color'.
+// The intent collects a parameter named 'fakeColor'.
+app.intent('favorite fake color', (conv, {fakeColor}) => {
+  // Present user with the corresponding basic card and end the conversation.
+  conv.close(`Aquí está el color`, new BasicCard(colorMap[fakeColor]));
+});
 
 // Set the DialogflowApp object to handle the HTTPS POST request.
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
