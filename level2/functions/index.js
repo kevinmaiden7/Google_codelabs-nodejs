@@ -14,7 +14,15 @@
 'use strict';
 
 // Import the Dialogflow module from the Actions on Google client library.
-const {dialogflow} = require('actions-on-google');
+//const {dialogflow} = require('actions-on-google');
+
+// Import the Dialogflow module and response creation dependencies from the 
+// Actions on Google client library.
+const {
+    dialogflow,
+    Permission,
+    Suggestions,
+  } = require('actions-on-google');
 
 // Import the firebase-functions package for deployment.
 const functions = require('firebase-functions');
@@ -24,12 +32,40 @@ const app = dialogflow({debug: true});
 
 // Handle the Dialogflow intent named 'favorite color'.
 // The intent collects a parameter named 'color'.
-//app.intent('favorite color', (conv, {color}) => {
-app.intent('color favorito', (conv, {color}) => {
+/*app.intent('color favorito', (conv, {color}) => {
     const luckyNumber = color.length;
     // Respond with the user's lucky number and end the conversation.
     conv.close('Bien, tu número de la suerte es el ' + luckyNumber);
-});
+});*/
+app.intent('color favorito', (conv, {color}) => {
+    const luckyNumber = color.length;
+    if (conv.data.userName) {
+      conv.close(`${conv.data.userName}, tu número de la suerte es el ${luckyNumber}.`);
+    } else {
+      conv.close(`Bien, tu número de la suerte es el ${luckyNumber}.`);
+    }
+  });
+
+// Handle the Dialogflow intent named 'Default Welcome Intent'.
+app.intent('Default Welcome Intent', (conv) => {
+    conv.ask(new Permission({
+      context: 'Hi there, to get to know you better',
+      permissions: 'NAME'
+    }));
+  });
+
+// Handle the Dialogflow intent named 'actions_intent_PERMISSION'. If user
+// agreed to PERMISSION prompt, then boolean value 'permissionGranted' is true.
+app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
+    if (!permissionGranted) {
+      conv.ask(`Ok, no worries. What's your favorite color?`);
+      conv.ask(new Suggestions('Blue', 'Red', 'Green'));
+    } else {
+      conv.data.userName = conv.user.name.display;
+      conv.ask(`Thanks, ${conv.data.userName}. What's your favorite color?`);
+      conv.ask(new Suggestions('Blue', 'Red', 'Green'));
+    }
+  });
 
 // Set the DialogflowApp object to handle the HTTPS POST request.
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
