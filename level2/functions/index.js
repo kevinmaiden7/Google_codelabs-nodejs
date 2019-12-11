@@ -49,7 +49,7 @@ app.intent('color favorito', (conv, {color}) => {
 // Handle the Dialogflow intent named 'Default Welcome Intent'.
 app.intent('Default Welcome Intent', (conv) => {
     conv.ask(new Permission({
-      context: 'Hi there, to get to know you better',
+      context: 'Hola, para conocerte mejor',
       permissions: 'NAME'
     }));
   });
@@ -58,12 +58,12 @@ app.intent('Default Welcome Intent', (conv) => {
 // agreed to PERMISSION prompt, then boolean value 'permissionGranted' is true.
 app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
     if (!permissionGranted) {
-      conv.ask(`Ok, no worries. What's your favorite color?`);
-      conv.ask(new Suggestions('Blue', 'Red', 'Green'));
+      conv.ask(`Vale, no hay problema. Cuál es tu color favorito?`);
+      conv.ask(new Suggestions('Azul', 'Rojo', 'Verde'));
     } else {
       conv.data.userName = conv.user.name.display;
-      conv.ask(`Thanks, ${conv.data.userName}. What's your favorite color?`);
-      conv.ask(new Suggestions('Blue', 'Red', 'Green'));
+      conv.ask(`Gracias, ${conv.data.userName}. Cuál es tu color favorito?`);
+      conv.ask(new Suggestions('Azul', 'Rojo', 'Verde'));
     }
   });
 
