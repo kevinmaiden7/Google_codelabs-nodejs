@@ -37,14 +37,28 @@ const app = dialogflow({debug: true});
     // Respond with the user's lucky number and end the conversation.
     conv.close('Bien, tu número de la suerte es el ' + luckyNumber);
 });*/
-app.intent('color favorito', (conv, {color}) => {
+/*app.intent('color favorito', (conv, {color}) => {
     const luckyNumber = color.length;
     if (conv.data.userName) {
       conv.close(`${conv.data.userName}, tu número de la suerte es el ${luckyNumber}.`);
     } else {
       conv.close(`Bien, tu número de la suerte es el ${luckyNumber}.`);
     }
-  });
+  });*/
+
+  app.intent('color favorito', (conv, {color}) => {
+    const luckyNumber = color.length;
+    const audioSound = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
+    if (conv.data.userName) {
+      // If we collected user name previously, address them by name and use SSML
+      // to embed an audio snippet in the response.
+      conv.close(`<speak>${conv.data.userName}, tu número de la suerte es el ` +
+        `${luckyNumber}.<audio src="${audioSound}"></audio></speak>`);
+    } else {
+      conv.close(`<speak>Bien, tu número de la suerte es el ${luckyNumber}.` +
+        `<audio src="${audioSound}"></audio></speak>`);
+    }
+   });
 
 // Handle the Dialogflow intent named 'Default Welcome Intent'.
 app.intent('Default Welcome Intent', (conv) => {
