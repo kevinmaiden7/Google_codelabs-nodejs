@@ -144,5 +144,20 @@ app.intent('favorite fake color', (conv, {fakeColor}) => {
   conv.close(`Aquí está el color`, new BasicCard(colorMap[fakeColor]));
 });
 
+// Handle the Dialogflow NO_INPUT intent.
+// Triggered when the user doesn't provide input to the Action
+app.intent('actions_intent_NO_INPUT', (conv) => {
+  // Use the number of reprompts to vary response
+  const repromptCount = parseInt(conv.arguments.get('REPROMPT_COUNT'));
+  if (repromptCount === 0) {
+    conv.ask('Sobre que color te gustaría escuchar?');
+  } else if (repromptCount === 1) {
+    conv.ask(`Por favor, dime el nombre de un color`);
+  } else if (conv.arguments.get('IS_FINAL_REPROMPT')) {
+    conv.close(`Lo siento, hemos tenido problemas, ` +
+      `intentalo de nuevo luego. Hasta pronto.`);
+  }
+});
+
 // Set the DialogflowApp object to handle the HTTPS POST request.
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
