@@ -22,7 +22,9 @@ const {
     dialogflow,
     Permission,
     Suggestions,
-    BasicCard
+    BasicCard,
+    Carousel,
+    Image,
   } = require('actions-on-google');
 
 // Import the firebase-functions package for deployment.
@@ -110,7 +112,7 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
 const colorMap = {
   'taco indigo': {
     title: 'Indigo Taco',
-    text: 'Indigo Taco is a subtle bluish tone.',
+    text: 'Descripción de taco indigo.',
     image: {
       url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDN1JRbF9ZMHZsa1k/style-color-uiapplication-palette1.png',
       accessibilityText: 'Indigo Taco Color',
@@ -119,7 +121,7 @@ const colorMap = {
   },
   'unicornio rosa': {
     title: 'Pink Unicorn',
-    text: 'Pink Unicorn is an imaginative reddish hue.',
+    text: 'Descripción de unicornio rosa.',
     image: {
       url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png',
       accessibilityText: 'Pink Unicorn Color',
@@ -128,7 +130,7 @@ const colorMap = {
   },
   'cafe gris azulado': {
     title: 'Blue Grey Coffee',
-    text: 'Calling out to rainy days, Blue Grey Coffee brings to mind your favorite coffee shop.',
+    text: 'Descripción de cafe gris azulado.',
     image: {
       url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png',
       accessibilityText: 'Blue Grey Coffee Color',
@@ -137,12 +139,21 @@ const colorMap = {
   },
 };
 
-// Handle the Dialogflow intent named 'favorite fake color'.
+/*// Handle the Dialogflow intent named 'favorite fake color'.
 // The intent collects a parameter named 'fakeColor'.
 app.intent('favorite fake color', (conv, {fakeColor}) => {
   // Present user with the corresponding basic card and end the conversation.
   conv.close(`Aquí está el color`, new BasicCard(colorMap[fakeColor]));
-});
+});*/
+
+app.intent('favorite fake color', (conv, {fakeColor}) => {
+  fakeColor = conv.arguments.get('OPTION') || fakeColor;
+  // Present user with the corresponding basic card and end the conversation.
+  conv.ask(`Aquí está el color.`, new BasicCard(colorMap[fakeColor]));
+  if (!conv.screen) {
+    conv.ask(colorMap[fakeColor].text);
+  }
+ });
 
 // Handle the Dialogflow NO_INPUT intent.
 // Triggered when the user doesn't provide input to the Action
@@ -158,6 +169,46 @@ app.intent('actions_intent_NO_INPUT', (conv) => {
       `intentalo de nuevo luego. Hasta pronto.`);
   }
 });
+
+// In the case the user is interacting with the Action on a screened device
+// The Fake Color Carousel will display a carousel of color cards
+const fakeColorCarousel = () => {
+  const carousel = new Carousel({
+   items: {
+     'taco indigo': {
+       title: 'Indigo Taco',
+       synonyms: ['taco', 'indigo'],
+       image: new Image({
+         url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDN1JRbF9ZMHZsa1k/style-color-uiapplication-palette1.png',
+         alt: 'Indigo Taco Color',
+       }),
+     },
+     'unicornio rosa': {
+       title: 'Pink Unicorn',
+       synonyms: ['unicornio', 'rosa'],
+       image: new Image({
+         url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png',
+         alt: 'Pink Unicorn Color',
+       }),
+     },
+     'cafe gris azulado': {
+       title: 'Blue Grey Coffee',
+       synonyms: ['azul', 'cafe', 'gris'],
+       image: new Image({
+         url: 'https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png',
+         alt: 'Blue Grey Coffee Color',
+       }),
+     },
+ }});
+ return carousel;
+};
+
+// Handle the Dialogflow intent named 'favorite color - yes'
+app.intent('color favorito - yes', (conv) => {
+  conv.ask('¿Cúal color, taco indigo, unicornio rosa o cafe gris azulado?');
+  // If the user is using a screened device, display the carousel
+  if (conv.screen) return conv.ask(fakeColorCarousel());
+ });
 
 // Set the DialogflowApp object to handle the HTTPS POST request.
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);
