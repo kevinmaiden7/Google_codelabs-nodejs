@@ -64,10 +64,10 @@ const app = dialogflow({debug: true});
 app.intent('color favorito', (conv, {color}) => {
     const luckyNumber = color.length;
     const audioSound = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
-    if (conv.data.userName) {
+    if (conv.user.storage.userName) {
       // If we collected user name previously, address them by name and use SSML
       // to embed an audio snippet in the response.
-      conv.ask(`<speak>${conv.data.userName}, tu número de la suerte es el ` +
+      conv.ask(`<speak>${conv.user.storage.userName}, tu número de la suerte es el ` +
         `${luckyNumber}.<audio src="${audioSound}"></audio> ` +
         `Te gustaría escuchar algunos colores falsos?</speak>`);
       conv.ask(new Suggestions('Si', 'No'));
@@ -81,11 +81,17 @@ app.intent('color favorito', (conv, {color}) => {
 
 // Handle the Dialogflow intent named 'Default Welcome Intent'.
 app.intent('Default Welcome Intent', (conv) => {
+  const name = conv.user.storage.userName;
+  if (!name) {
+    // Asks the user's permission to know their name, for personalization.
     conv.ask(new Permission({
       context: 'Hola, para conocerte mejor',
-      permissions: 'NAME'
+      permissions: 'NAME',
     }));
-  });
+  } else {
+    conv.ask(`Hola de nuevo, ${name}. Cuál es tu color favorito?`);
+  }
+});
 
 // Handle the Dialogflow intent named 'actions_intent_PERMISSION'. If user
 // agreed to PERMISSION prompt, then boolean value 'permissionGranted' is true.
@@ -94,8 +100,8 @@ app.intent('actions_intent_PERMISSION', (conv, params, permissionGranted) => {
       conv.ask(`Vale, no hay problema. Cuál es tu color favorito?`);
       conv.ask(new Suggestions('Azul', 'Rojo', 'Verde'));
     } else {
-      conv.data.userName = conv.user.name.display;
-      conv.ask(`Gracias, ${conv.data.userName}. Cuál es tu color favorito?`);
+      conv.user.storage.userName = conv.user.name.display;
+      conv.ask(`Gracias, ${conv.user.storage.userName}. Cuál es tu color favorito?`);
       conv.ask(new Suggestions('Azul', 'Rojo', 'Verde'));
     }
   });
