@@ -146,14 +146,26 @@ app.intent('favorite fake color', (conv, {fakeColor}) => {
   conv.close(`Aquí está el color`, new BasicCard(colorMap[fakeColor]));
 });*/
 
-app.intent('favorite fake color', (conv, {fakeColor}) => {
+/*app.intent('favorite fake color', (conv, {fakeColor}) => {
   fakeColor = conv.arguments.get('OPTION') || fakeColor;
   // Present user with the corresponding basic card and end the conversation.
   conv.ask(`Aquí está el color.`, new BasicCard(colorMap[fakeColor]));
   if (!conv.screen) {
     conv.ask(colorMap[fakeColor].text);
   }
- });
+ });*/
+
+ app.intent('favorite fake color', (conv, {fakeColor}) => {
+  fakeColor = conv.arguments.get('OPTION') || fakeColor;
+  // Present user with the corresponding basic card and end the conversation.
+  if (!conv.screen) {
+    conv.ask(colorMap[fakeColor].text);
+  } else {
+    conv.ask(`Aquí vamos.`, new BasicCard(colorMap[fakeColor]));
+  }
+  conv.ask('Quieres oir sobre algún otro color falso?');
+  conv.ask(new Suggestions('Si', 'No'));
+});
 
 // Handle the Dialogflow NO_INPUT intent.
 // Triggered when the user doesn't provide input to the Action
@@ -204,7 +216,13 @@ const fakeColorCarousel = () => {
 };
 
 // Handle the Dialogflow intent named 'favorite color - yes'
-app.intent('color favorito - yes', (conv) => {
+/*app.intent('color favorito - yes', (conv) => {
+  conv.ask('¿Cúal color, taco indigo, unicornio rosa o cafe gris azulado?');
+  // If the user is using a screened device, display the carousel
+  if (conv.screen) return conv.ask(fakeColorCarousel());
+ });*/
+
+app.intent(['color favorito - yes', 'favorite fake color - yes'], (conv) => {
   conv.ask('¿Cúal color, taco indigo, unicornio rosa o cafe gris azulado?');
   // If the user is using a screened device, display the carousel
   if (conv.screen) return conv.ask(fakeColorCarousel());
